@@ -1,10 +1,20 @@
 #possibly need to run pip install pandas, openpyxl, python-dotenv
+import sys
+import signal
 import requests
 import urllib3
 import json
 import os
 import pandas as pd
 from dotenv import load_dotenv
+
+#signal handler for interupts
+#FIXME  add cleanup code
+def signal_handler(sig, frame):
+    print('\nInterupt Caught. Exiting program...\n')
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 class API_data:
     def __init__(self, TOKEN):
@@ -15,11 +25,10 @@ class API_data:
             "Content-Type": "application/json"
         }
 
-    #FIXME: add try/except block to handle errors
     #add host numbers to host_nums from each page of the API
     def get_hosts(self, url):
 
-        #check if status code is good, retrieve all host numbers
+        #check if status code is good, retrieve all host numbers. exit if otherwise
         r = requests.get(url, headers=self.headers, verify=False)
         if r.status_code == 200:
             r_json = r.json()
@@ -33,6 +42,9 @@ class API_data:
                 self.get_hosts(next_url)
             else:
                 self.get_facts()
+        else:
+            print(f"Error: {r.status_code}). Exiting program...")
+            sys.exit(1)
 
 
 
