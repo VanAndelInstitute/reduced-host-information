@@ -16,6 +16,15 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+#check for csv files existence. delete if file exists and generate new file
+def check_file(filepath):
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        print("'host_information.csv' already exists. This file will be removed and a new one will be generated.\n")
+        os.remove(filepath)
+        print("Generating new file: 'host_information.csv'\n")
+    else:
+        print("'host_information.csv' does not exist. Generating new file: 'host_information.csv'\n")
+
 class API_data:
     def __init__(self, TOKEN):
         self.host_nums = []
@@ -25,9 +34,7 @@ class API_data:
             "Content-Type": "application/json"
         }
 
-    #add host numbers to host_nums from each page of the API
-    def get_hosts(self, url):
-
+    def get_host_nums(self, url):
         #check if status code is good, retrieve all host numbers. exit if otherwise
         r = requests.get(url, headers=self.headers, verify=False)
         if r.status_code == 200:
@@ -39,43 +46,25 @@ class API_data:
             #if there is a next page, recurse with the url held in the 'next' field
             if r_json['next']:
                 next_url = 'https://ansible.vai.org:8043' + r_json['next']
-                self.get_hosts(next_url)
+                self.get_host_nums(next_url)
             else:
-                self.get_facts()
+                self.get_host_facts()
         else:
-            print(f"Error: {r.status_code}). Exiting program...")
+            print(f"\nError: {r.status_code}). Exiting program...\n")
             sys.exit(1)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #retrieves the information of every host and appends it to a file called host_information.csv
-    def get_facts(self):
+    def get_host_facts(self):
         count_hosts = 0
         col_num = 0
 
+        #FIXME: might be a better way to handle existing files
         #delete old host_facts file if it exists
         csv_file = 'host_information.csv'
-        if os.path.exists(csv_file) and os.path.isfile(csv_file):
-            print("'host_information.csv' already exists. This file will be removed and a new one will be generated.\n")
-            os.remove(csv_file)
-            print("Generating new file: 'host_information.csv'\n")
-        else:
-            print("'host_information.csv' does not exist. Generating new file: 'host_information.csv'\n")
+        self.check_file(csv_file)
         
+
         #retrieving information for each host
         for host_no in self.host_nums:
-
             #create URL based on host number and request the information
             url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
             r = requests.get(url, headers=self.headers, verify=False)
@@ -88,9 +77,6 @@ class API_data:
                 #collect reduced information from the json response
                 
                 self.host_names[host_no] = r_json['ansible_nodename']
-                
-
-
                 df = pd.json_normalize(r_json, sep=' ')
 
                 #add hostname to each column of information, then trans
@@ -104,6 +90,11 @@ class API_data:
                 df.to_csv(csv_file, mode='a')
                 print(f"Successfully saved {server} data to host_information.csv")
                 count_hosts += 1
+
+            else:
+                print(f"\nError: {r.status_code}). Exiting program...\n")
+                sys.exit(1)
+                
         print(f'\nNumber of hosts saved: {count_hosts}')
 
 
@@ -125,12 +116,13 @@ class API_data:
 urllib3.disable_warnings()
 load_dotenv()
 
+#FIXME: add check to see if user wants whole information or just the reduced information
 #check if environmental variable called 'TOKEN' exists. 
 if 'TOKEN' in os.environ:
     TOKEN = os.getenv('TOKEN')
     print("Process Starting...\n")
     data = API_data(TOKEN=TOKEN)
-    data.get_hosts( url = 'https://ansible.vai.org:8043/api/v2/hosts/')
+    data.get_hosts_nums( url = 'https://ansible.vai.org:8043/api/v2/hosts/')
     print('Process Ended Successfully\n')
 else:
     print("'TOKEN' does not exist as an evironment variable.")
