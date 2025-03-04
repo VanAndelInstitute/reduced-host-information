@@ -1,10 +1,10 @@
 #possibly need to run pip install pandas, openpyxl, python-dotenv
+import os
 import sys
+import csv
 import signal
 import requests
 import urllib3
-import xlsxwriter
-import os
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -18,11 +18,12 @@ signal.signal(signal.SIGINT, signal_handler)
 #check for csv files existence. delete if file exists and generate new file
 def check_file(filepath):
     if os.path.exists(filepath) and os.path.isfile(filepath):
-        print("'host_information.csv' already exists. This file will be removed and a new one will be generated.\n")
+        print(f"{filepath} already exists. This file will be removed and a new one will be generated.\n")
         os.remove(filepath)
-        print("Generating new file: 'host_information.csv'\n")
+        print(f"Generating new file: '{filepath}\n")
     else:
-        print("'host_information.csv' does not exist. Generating new file: 'host_information.csv'\n")
+        print(f"{filepath} does not exist. Generating new file: {filepath}\n")
+
 
 class API_data:
 
@@ -62,11 +63,10 @@ class API_data:
     def get_some_host_facts(self):
         count_hosts = 0
         csv_file = 'host_information_some.csv'
-        self.check_file(csv_file)
+        check_file(csv_file)
 
         #FIXME index the processor to only show the first item. ansible_processor[0] = CPU name
-
-        server_mac_addresses = []
+        interfaces = []
         column_labels = ['Server Name', 'Product Serial', 'Chassis Serial', 'Model', 'Chassis Vendor', 'System Vendor', 'Memory', 'Processor (CPU)', 'Processor Cores', 'Processor Count']
         api_queries = {'ansible_nodename':'',      
                       'ansible_product_serial':'',
@@ -79,15 +79,6 @@ class API_data:
                       'ansible_processor_cores':'',
                       'ansible_processor_count':''}
         
-        """
-        row, col = 0, 0
-        workbook = xlsxwriter.Workbook('host_information_some.xlsx')
-        worksheet = workbook.add_worksheet()
-        for label in column_labels:
-            worksheet.write(row, col, label)
-            col += 1
-
-        
 
         for host_no in self.host_nums:
             url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
@@ -95,6 +86,33 @@ class API_data:
 
             if r.status_code == 200:
                 r_json = r.json()
+                
+                #get all interfaces, check if they have a macaddress attribute.
+                server_mac_addresses = {}
+                interfaces = r_json['ansible_interfaces']
+                skip_lst = ['v','d']
+
+                for interface in interfaces:
+                    if interface[0] in skip_lst:             #remove virtual ethernet interfaces
+                        interfaces.remove(interface)
+                        continue
+
+                    mac_query = f'ansible_{interface}'
+                    try:
+                        mac_address = r_json[mac_query]['macaddress']
+                        server_mac_addresses[interface] = mac_address
+                    except:
+                        interfaces.remove(interface)
+                        continue
+                
+                if server_mac_addresses:
+                    print(r_json['ansible_nodename'])
+                    for k,v in server_mac_addresses.items():
+                        print(f"{k}: {v}")
+                    
+                print()
+                
+
                 for key in api_queries:
                     try:
                         api_queries[key] = r_json[key]
@@ -107,7 +125,7 @@ class API_data:
                 print(f"\nError: {r.status_code}). Exiting program...\n")
                 sys.exit(1)
                 
-        print(f'\nNumber of hosts saved: {count_hosts}')"""
+        print(f'\nNumber of hosts saved: {count_hosts}')
 
         
     def get_all_host_facts(self):
