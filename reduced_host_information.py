@@ -9,13 +9,10 @@ import pandas as pd
 from dotenv import load_dotenv
 
 
-#signal handler for interupts
 def signal_handler(sig, frame):
     print('\nInterupt Caught. Exiting program...\n')
     sys.exit(0)
-signal.signal(signal.SIGINT, signal_handler)
 
-#check for csv files existence. delete if file exists and generate new file
 def check_file(filepath):
     if os.path.exists(filepath) and os.path.isfile(filepath):
         print(f"{filepath} already exists. This file will be removed and a new one will be generated.\n")
@@ -23,6 +20,13 @@ def check_file(filepath):
         print(f"Generating new file: '{filepath}\n")
     else:
         print(f"{filepath} does not exist. Generating new file: {filepath}\n")
+
+def reduce_interfaces(interfaces):
+    skip_lst = ['v','d']
+    for interface in interfaces:
+        if interface[0] in skip_lst:             #remove virtual ethernet interfaces
+            interfaces.remove(interface)
+    return interfaces
 
 
 class API_data:
@@ -79,24 +83,17 @@ class API_data:
                       'ansible_processor_cores':'',
                       'ansible_processor_count':''}
         
-
         for host_no in self.host_nums:
             url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
             r = requests.get(url, headers=self.headers, verify=False)
 
             if r.status_code == 200:
                 r_json = r.json()
-                
-                #get all interfaces, check if they have a macaddress attribute.
                 server_mac_addresses = {}
                 interfaces = r_json['ansible_interfaces']
-                skip_lst = ['v','d']
+                interfaces = reduce_interfaces(interfaces)
 
                 for interface in interfaces:
-                    if interface[0] in skip_lst:             #remove virtual ethernet interfaces
-                        interfaces.remove(interface)
-                        continue
-
                     mac_query = f'ansible_{interface}'
                     try:
                         mac_address = r_json[mac_query]['macaddress']
@@ -104,13 +101,11 @@ class API_data:
                     except:
                         interfaces.remove(interface)
                         continue
-                
+            
                 if server_mac_addresses:
                     print(r_json['ansible_nodename'])
                     for k,v in server_mac_addresses.items():
                         print(f"{k}: {v}")
-                    
-                print()
                 
 
                 for key in api_queries:
@@ -165,6 +160,7 @@ class API_data:
         print(f'\nNumber of hosts saved: {count_hosts}')
 
 
+signal.signal(signal.SIGINT, signal_handler)
 
 #suppress warnings and load environment variables
 urllib3.disable_warnings()
