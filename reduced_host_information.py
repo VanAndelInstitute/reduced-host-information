@@ -15,16 +15,18 @@ class API_data:
             "Content-Type": "application/json"
         }
 
+    #FIXME: add try/except block to handle errors
     #add host numbers to host_nums from each page of the API
     def get_hosts(self, url):
+
+        #check if status code is good, retrieve all host numbers
         r = requests.get(url, headers=self.headers, verify=False)
         if r.status_code == 200:
             r_json = r.json()
-            df = pd.json_normalize(r_json['results']) #flatten the data to pull the host ids
-            hosts = df['id']
-            for host_no in hosts:
-                self.host_nums.append(host_no)
-            
+            hosts_curr_page = [host['id'] for host in r_json['results']]
+            for hn in hosts_curr_page:
+                self.host_nums.append(hn)
+
             #if there is a next page, recurse with the url held in the 'next' field
             if r_json['next']:
                 next_url = 'https://ansible.vai.org:8043' + r_json['next']
@@ -69,7 +71,7 @@ class API_data:
             #check if status code is good for retrieval
             if r.status_code == 200:
                 r_json = r.json()   #convert response object to json
-                print(json.dumps(r_json, indent=2))
+                #print(json.dumps(r_json, indent=2))
 
                 #collect reduced information from the json response
                 
