@@ -47,6 +47,14 @@ def query_interfaces(server_mac_addresses, reduced_ifs, r_json):
     
     return valid_ifs
 
+def map_api_queries(api_queries, r_json):
+    for key in api_queries:
+        try:
+            api_queries[key] = r_json[key]
+        except KeyError:
+            api_queries[key] = 'Empty'
+
+
 ############################################################################################################
 
 class API_data:
@@ -111,27 +119,34 @@ class API_data:
             url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
             r = requests.get(url, headers=self.headers, verify=False)
 
-            #
+            #check for valid http request, process querying for the mac addresses and API values
             if r.status_code == 200:
                 server_mac_addresses = {}   #reset the server mac address dict
                 r_json = r.json()           #convert the response into a json object
-                interfaces = r_json['ansible_interfaces']       #retrieve all the interface names
-                reduced_ifs = reduce_interfaces(interfaces)      #filter out the virtual and docker interfaces
+
+                #retrieve all the interface names
+                interfaces = r_json['ansible_interfaces']
+
+                #filter out the virtual and docker interfaces
+                reduced_ifs = reduce_interfaces(interfaces)
 
                 #get the server interfaces and final reduced interfaces
                 valid_ifs = query_interfaces(server_mac_addresses, reduced_ifs, r_json)
-            
+
+                #map the api queries to their corresponding values in the RESTAPI
+                map_api_queries(api_queries, r_json)
+
                 if server_mac_addresses:
-                    print(r_json['ansible_nodename'])
+                    print("\n" + r_json['ansible_nodename'])
                     for k,v in server_mac_addresses.items():
                         print(f"{k}: {v}")
-                
 
-                for key in api_queries:
-                    try:
-                        api_queries[key] = r_json[key]
-                    except KeyError:
-                        api_queries[key] = 'N/A'
+                if api_queries:
+                    print("\n" + "api queries:")
+                    for k, v in api_queries.items():
+                        print(f"{k}: {v}")
+                    
+            
 
                 count_hosts += 1
 
