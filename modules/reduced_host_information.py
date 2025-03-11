@@ -1,7 +1,7 @@
 #possibly need to run pip install pandas, openpyxl, python-dotenv
 import os
 import sys
-import csv      #problem installing
+import csv
 import signal
 import requests
 import urllib3
@@ -15,14 +15,36 @@ def signal_handler(sig, frame):
 
     sys.exit(0)
 
-def check_file(filepath):
+def check_token():
+    if 'TOKEN' in os.environ:
+        return os.getenv('TOKEN')
+    else:
+        print("'TOKEN' does not exist as an evironment variable.")
+        print("Initialize an environmental variable called 'TOKEN' with your bearer token. Rerun the script upon completion.")
+        print("Exiting program...\n")
+        exit(1)
 
+def check_file(filepath):
     if os.path.exists(filepath) and os.path.isfile(filepath):
         print(f"{filepath} already exists. This file will be removed and a new one will be generated.\n")
         os.remove(filepath)
         print(f"Generating new file: '{filepath}\n")
     else:
         print(f"{filepath} does not exist. Generating new file: {filepath}\n")
+
+def init_api_data_structure(token):
+    #prompt for what user wants to retrieve
+    all_flag = input("Do you want to retrieve all host information? (y/n): ")
+    #initialize class structure
+    data = API_data(TOKEN=token)
+
+    #set flag based on what we are retrieving
+    if all_flag.lower() == 'n':
+        data.all_flag = 0
+    else:
+        data.all_flag = 1
+
+    return data
 
 def reduce_interfaces(interfaces):
     skip_lst = ['v','d']
@@ -203,20 +225,11 @@ urllib3.disable_warnings()
 load_dotenv()
 
 #check if environmental variable called 'TOKEN' exists. 
-if 'TOKEN' in os.environ:
-    TOKEN = os.getenv('TOKEN')
 
-    all_flag = input("Do you want to retrieve all host information? (y/n): ")
-    if all_flag.lower() == 'n':
-        data = API_data(TOKEN=TOKEN)
-        data.all_flag = 0
-    else:
-        data = API_data(TOKEN=TOKEN)
-        data.all_flag = 1
+TOKEN = check_token()
+data = init_api_data_structure(token=TOKEN)
 
-    print("\nProcess Starting...\n")
-    data.get_host_nums( url = 'https://ansible.vai.org:8043/api/v2/hosts/')
-    print('Process Ended Successfully\n')
-else:
-    print("'TOKEN' does not exist as an evironment variable.")
-    print("Initialize an environmental variable called 'TOKEN' with your bearer token. Rerun the script upon completion.\n")
+
+print("\nProcess Starting...\n")
+data.get_host_nums( url = 'https://ansible.vai.org:8043/api/v2/hosts/')
+print('Process Ended Successfully\n')
