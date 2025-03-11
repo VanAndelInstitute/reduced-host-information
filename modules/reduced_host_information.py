@@ -33,12 +33,9 @@ def check_file(filepath):
         print(f"{filepath} does not exist. Generating new file: {filepath}\n")
 
 def init_api_data_structure(token):
-    #prompt for what user wants to retrieve
     all_flag = input("Do you want to retrieve all host information? (y/n): ")
-    #initialize class structure
     data = API_data(TOKEN=token)
 
-    #set flag based on what we are retrieving
     if all_flag.lower() == 'n':
         data.all_flag = 0
     else:
@@ -80,7 +77,7 @@ def map_api_queries(api_queries, r_json):
 ############################################################################################################
 
 class API_data:
-
+    #constructor
     def __init__(self, TOKEN):
         self.all_flag = 1
         self.host_nums = []
@@ -90,28 +87,36 @@ class API_data:
             "Content-Type": "application/json"
         }
 
+    #initialize list of all hosts numbers
     def get_host_nums(self, url):
         #check if status code is good, retrieve all host numbers. exit if otherwise
         r = requests.get(url, headers=self.headers, verify=False)
         if r.status_code == 200:
             r_json = r.json()
-            hosts_curr_page = [host['id'] for host in r_json['results']]
-            for hn in hosts_curr_page:
-                self.host_nums.append(hn)
-
-            #if there is a next page, recurse with the url held in the 'next' field
-            if r_json['next']:
-                next_url = 'https://ansible.vai.org:8043' + r_json['next']
-                self.get_host_nums(next_url)
-            else:
-                if self.all_flag == 1:
-                    self.get_all_host_facts()
-                else:
-                    self.get_some_host_facts()
+            self.get_curr_page_hosts(self, response = r_json)
 
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")
             sys.exit(1)
+
+    #get all the hosts from the curretly "visible" page
+    def get_curr_page_hosts(self, response):
+        hosts_curr_page = [host['id'] for host in response['results']]
+        for hn in hosts_curr_page:
+            self.host_nums.append(hn)
+
+        self.check_next_page(response)
+
+    #if there is a next page, recurse with the url held in the 'next' field
+    def check_next_page(self, response):
+        if response['next']:
+            next_url = 'https://ansible.vai.org:8043' + response['next']
+            self.get_host_nums(next_url)
+        else:
+            if self.all_flag == 1:
+                self.get_all_host_facts()
+            else:
+                self.get_some_host_facts()
 
 ##############################################################
     
