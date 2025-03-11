@@ -8,13 +8,12 @@ import urllib3
 import pandas as pd
 from dotenv import load_dotenv
 
-
+#signal hander for keyboard interrupts
 def signal_handler(sig, frame):
-
     print('\nInterupt Caught. Exiting program...\n')
-
     sys.exit(0)
 
+#check if environmental variable called 'TOKEN' exists. 
 def check_token():
     if 'TOKEN' in os.environ:
         return os.getenv('TOKEN')
@@ -118,6 +117,23 @@ class API_data:
             else:
                 self.get_some_host_facts()
 
+    def get_curr_host_facts(self, response, csv_file, host_no):
+
+        self.host_names[host_no] = response['ansible_nodename']
+        df = pd.json_normalize(response, sep=' ')
+
+        #add hostname to each column of information, then trans
+        server = f'{self.host_names[host_no]}'
+        host_nodename = [server] * len(df.columns)  #to add a host nodename each row of information
+        df.loc[-1] = host_nodename 
+        df.index += 1
+        df.sort_index()
+        df = df.T
+
+        df.to_csv(csv_file, mode='a')
+        print(f"Successfully saved {server} data to {csv_file}")
+        count_hosts += 1
+
 ##############################################################
     
     def get_some_host_facts(self):
@@ -184,7 +200,7 @@ class API_data:
         print(f'\nNumber of hosts saved: {count_hosts}')
 
 ##############################################################
-        
+    
     def get_all_host_facts(self):
         count_hosts = 0
         csv_file = 'host_information_all.csv'
@@ -200,21 +216,10 @@ class API_data:
             #convert response object to json
             if r.status_code == 200:
                 r_json = r.json()
-                self.host_names[host_no] = r_json['ansible_nodename']
-                df = pd.json_normalize(r_json, sep=' ')
-
-                #add hostname to each column of information, then trans
-                server = f'{self.host_names[host_no]}'
-                host_nodename = [server] * len(df.columns)  #to add a host nodename each row of information
-                df.loc[-1] = host_nodename 
-                df.index += 1
-                df.sort_index()
-                df = df.T
-
-                df.to_csv(csv_file, mode='a')
-                print(f"Successfully saved {server} data to {csv_file}")
-                count_hosts += 1
-
+                try:
+                    self.get_curr_host_facts(self, response=r_json, csv_file=csv_file, host_no=host_no)
+                except:
+                    print("Error: Couldn't save host information")
             else:
                 print(f"\nError: {r.status_code}). Exiting program...\n")
                 sys.exit(1)
@@ -229,12 +234,10 @@ signal.signal(signal.SIGINT, signal_handler)
 urllib3.disable_warnings()
 load_dotenv()
 
-#check if environmental variable called 'TOKEN' exists. 
-
 TOKEN = check_token()
 data = init_api_data_structure(token=TOKEN)
-
+url = 'https://ansible.vai.org:8043/api/v2/hosts/'
 
 print("\nProcess Starting...\n")
-data.get_host_nums( url = 'https://ansible.vai.org:8043/api/v2/hosts/')
+data.get_host_nums(url = url)
 print('Process Ended Successfully\n')
