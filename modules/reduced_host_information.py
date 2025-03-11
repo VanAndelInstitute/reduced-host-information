@@ -92,7 +92,7 @@ class API_data:
         r = requests.get(url, headers=self.headers, verify=False)
         if r.status_code == 200:
             r_json = r.json()
-            self.get_curr_page_hosts(self, response = r_json)
+            self.get_curr_page_hosts(response = r_json)
 
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")
@@ -136,6 +136,30 @@ class API_data:
 
 ##############################################################
     
+    def get_all_host_facts(self):
+        count_hosts = 0
+        csv_file = 'host_information_all.csv'
+        check_file(csv_file)
+
+        #retrieving information for each host
+        for host_no in self.host_nums:
+            #create URL based on host number and request the information
+            url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
+            r = requests.get(url, headers=self.headers, verify=False)
+
+            #convert response object to json
+            if r.status_code == 200:
+                r_json = r.json()
+                try:
+                    self.get_curr_host_facts(self, response=r_json, csv_file=csv_file, host_no=host_no)
+                except:
+                    print("Error: Couldn't save host information")
+            else:
+                print(f"\nError: {r.status_code}). Exiting program...\n")
+                sys.exit(1)
+                
+        print(f'\nNumber of hosts saved: {count_hosts}')
+
     def get_some_host_facts(self):
         count_hosts = 0
         csv_file = 'host_information_some.csv'
@@ -199,32 +223,6 @@ class API_data:
                 
         print(f'\nNumber of hosts saved: {count_hosts}')
 
-##############################################################
-    
-    def get_all_host_facts(self):
-        count_hosts = 0
-        csv_file = 'host_information_all.csv'
-        check_file(csv_file)
-        
-
-        #retrieving information for each host
-        for host_no in self.host_nums:
-            #create URL based on host number and request the information
-            url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
-            r = requests.get(url, headers=self.headers, verify=False)
-
-            #convert response object to json
-            if r.status_code == 200:
-                r_json = r.json()
-                try:
-                    self.get_curr_host_facts(self, response=r_json, csv_file=csv_file, host_no=host_no)
-                except:
-                    print("Error: Couldn't save host information")
-            else:
-                print(f"\nError: {r.status_code}). Exiting program...\n")
-                sys.exit(1)
-                
-        print(f'\nNumber of hosts saved: {count_hosts}')
 
 ############################################################################################################
 
