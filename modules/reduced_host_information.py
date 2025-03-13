@@ -53,7 +53,7 @@ class API_data:
 
 
 if __name__ == "__main__":
-    
+
     #initialize signal handler and supress warnings
     signal.signal(signal.SIGINT, signal_handler)
     urllib3.disable_warnings()
@@ -72,9 +72,9 @@ if __name__ == "__main__":
 
     #get host facts based on if user wants some or all facts
     if data.all_flag == 1:
-        host_functions.get_all_host_facts()
+        hfa_functions.get_all_host_facts(data.host_names, data.host_nums, data.headers)
     else:
-        host_functions.get_some_host_facts(data.host_names, data.host_nums, data.headers)
+        hfs_functions.get_some_host_facts(data.host_names, data.host_nums, data.headers)
 
     #if here then process was successful
-    print('Process Ended Successfully\n')
+    print('\nProcess Ended Successfully\n')

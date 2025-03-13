@@ -53,7 +53,7 @@ def query_interfaces(server_mac_addresses, reduced_ifs, r_json):
             server_mac_addresses[intf] = mac_address
         except:
             continue
-
+        
 
 def create_csv():
     csv_file = 'host_information_some.csv'

@@ -61,10 +61,14 @@ def get_some_host_facts(host_names, host_nums, headers):
             #get the server interfaces and final reduced interfaces
             host_functions.query_interfaces(server_mac_addresses, reduced_ifs, r_json)
 
-            #FIXME: APPEND DATA TO A CSV FILE
+            #add interfaces to api_queries
+            for k,v in server_mac_addresses.items():
+                api_queries[k] = v
+            
+            print("\n")
+            for k,v in api_queries.items():
+                print(f"{k}: {v}")
 
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")
             sys.exit(1)
-            
-    print(f'\nNumber of hosts saved: {count_hosts}')
