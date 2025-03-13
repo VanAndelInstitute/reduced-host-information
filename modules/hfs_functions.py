@@ -1,3 +1,9 @@
+import os
+import sys
+import requests
+import pandas as pd
+import host_functions
+
 def get_some_curr_host_facts(host_names, response, host_no):
 
     api_queries = {'ansible_nodename':'',      
@@ -26,7 +32,6 @@ def get_some_curr_host_facts(host_names, response, host_no):
     return api_queries
 
 def get_some_host_facts(host_names, host_nums, headers):
-    count_hosts = 0
     interfaces = []
     reduced_ifs = []
 
@@ -51,22 +56,12 @@ def get_some_host_facts(host_names, host_nums, headers):
             interfaces = r_json['ansible_interfaces']
 
             #filter out the virtual and docker interfaces
-            reduced_ifs = reduce_interfaces(interfaces)
+            reduced_ifs = host_functions.reduce_interfaces(interfaces)
 
             #get the server interfaces and final reduced interfaces
-            query_interfaces(server_mac_addresses, reduced_ifs, r_json)
+            host_functions.query_interfaces(server_mac_addresses, reduced_ifs, r_json)
 
-
-        #print statements for server information
-            if server_mac_addresses:
-                for k,v in server_mac_addresses.items():
-                    api_queries[k] = v
-
-            for k,v in api_queries.items():
-                print(f"{k}: {v}")
-            print("\n\n")
-
-            count_hosts += 1
+            #FIXME: APPEND DATA TO A CSV FILE
 
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")

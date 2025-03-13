@@ -16,7 +16,6 @@ def signal_handler(sig, frame):
 
 
 class API_data:
-
     #constructor
     def __init__(self, TOKEN):
         self.all_flag = 1
@@ -53,27 +52,29 @@ class API_data:
             self.get_host_nums(next_url)
 
 
-#initialize signal handler and supress warnings
-signal.signal(signal.SIGINT, signal_handler)
-urllib3.disable_warnings()
-load_dotenv()
+if __name__ == "__main__":
+    
+    #initialize signal handler and supress warnings
+    signal.signal(signal.SIGINT, signal_handler)
+    urllib3.disable_warnings()
+    load_dotenv()
 
-#retrieve API token and initialize url, and API_data data structure with token
-TOKEN = host_functions.check_token()
-data = host_functions.init_api_data_structure(token=TOKEN, API_data_var=API_data)
-url = 'https://ansible.vai.org:8043/api/v2/hosts/'
+    #retrieve API token and initialize url, and API_data data structure with token
+    TOKEN = host_functions.check_token()
+    data = host_functions.init_api_data_structure(token=TOKEN, API_data_var=API_data)
+    url = 'https://ansible.vai.org:8043/api/v2/hosts/'
 
-#let user know process is starting
-print("\nProcess Starting...\n")
+    #let user know process is starting
+    print("\nProcess Starting...\n")
 
-#get every host number from the API
-data.get_host_nums(url)
+    #get every host number from the API
+    data.get_host_nums(url)
 
-#get host facts based on if user wants some or all facts
-if data.all_flag == 1:
-    host_functions.get_all_host_facts()
-else:
-    host_functions.get_some_host_facts(data.host_names, data.host_nums, data.headers)
+    #get host facts based on if user wants some or all facts
+    if data.all_flag == 1:
+        host_functions.get_all_host_facts()
+    else:
+        host_functions.get_some_host_facts(data.host_names, data.host_nums, data.headers)
 
-#if here then process was successful
-print('Process Ended Successfully\n')
+    #if here then process was successful
+    print('Process Ended Successfully\n')
