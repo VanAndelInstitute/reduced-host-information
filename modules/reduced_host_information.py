@@ -5,6 +5,7 @@ import csv
 import signal
 import requests
 import urllib3
+import json
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -12,6 +13,65 @@ from dotenv import load_dotenv
 def signal_handler(sig, frame):
     print('\nInterupt Caught. Exiting program...\n')
     sys.exit(0)
+
+#check if environmental variable called 'TOKEN' exists. 
+def check_token():
+    if 'TOKEN' in os.environ:
+        return os.getenv('TOKEN')
+    else:
+        print("'TOKEN' does not exist as an evironment variable.")
+        print("Initialize an environmental variable called 'TOKEN' with your bearer token. Rerun the script upon completion.")
+        print("Exiting program...\n")
+        exit(1)
+
+def check_file(filepath):
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        print(f"{filepath} already exists. This file will be removed and a new one will be generated.\n")
+        os.remove(filepath)
+        print(f"Generating new file: '{filepath}\n")
+    else:
+        print(f"{filepath} does not exist. Generating new file: {filepath}\n")
+
+def init_api_data_structure(token):
+    all_flag = input("Do you want to retrieve all host information? (y/n): ")
+    data = API_data(TOKEN=token)
+
+    if all_flag.lower() == 'n':
+        data.all_flag = 0
+    else:
+        data.all_flag = 1
+
+    return data
+
+def reduce_interfaces(interfaces):
+    skip_lst = ['v','d']
+
+    for interface in interfaces:
+        if interface[0] in skip_lst:
+            interfaces.remove(interface)
+
+    return interfaces
+
+def query_interfaces(server_mac_addresses, reduced_ifs, r_json):
+    valid_ifs = []
+
+    for inf in reduced_ifs:                    
+        mac_query = f'ansible_{inf}'
+        try:
+            mac_address = r_json[mac_query]['macaddress']
+            server_mac_addresses[inf] = mac_address
+            valid_ifs.append(inf)
+        except:
+            continue
+    
+    return valid_ifs
+
+def map_api_queries(api_queries, r_json):
+    for key in api_queries:
+        try:
+            api_queries[key] = r_json[key]
+        except KeyError:
+            api_queries[key] = 'Empty'
 
 ############################################################################################################
 
@@ -74,6 +134,37 @@ class API_data:
         print(f"Successfully saved {server} data to {csv_file}")
         count_hosts += 1
 
+
+
+
+    def get_some_curr_host_facts(self, response, host_no, csv_file, query_map, keys):
+
+        #get current host name
+        self.host_names[host_no] = response['ansible_nodename']
+        
+        #get keys for ansible_memory_mb
+        
+
+        print("\n\n")
+        
+        print("Assignments")
+        for k in keys:
+            try:
+                if k == 'ansible_memory_mb':
+                    print(f"{k}: {response[k]['real']['total']}")     
+                elif k == "ansible_processor":
+                    print(f"{k}: {response[k][2]}")
+                else:
+                    print(f"{k}: {response[k]}")
+                
+            except:
+                print("Error: " + k)
+                exit(1)
+
+
+
+
+
 ##############################################################
     
     def get_all_host_facts(self):
@@ -126,11 +217,13 @@ class API_data:
                       'ansible_product_name':'',
                       'ansible_chassis_vendor':'',
                       'ansible_system_vendor':'',
-                      'ansible_memory_mb':'',
-                      'ansible_processor[0]':'',
+                      "ansible_memory_mb":'',
+                      'ansible_processor':'',
                       'ansible_processor_cores':'',
                       'ansible_processor_count':''}
         
+        api_query_keys = api_queries.keys()
+
         #iterate through all hosts
         for host_no in self.host_nums:
             url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
@@ -138,6 +231,13 @@ class API_data:
 
             #check for valid http request, process querying for the mac addresses and API values
             if r.status_code == 200:
+                r_json = r.json()
+
+                #get the facts listed in the api_queries for the current node
+                self.get_some_curr_host_facts(r_json, csv_file, host_no, api_queries, api_query_keys)
+                
+
+
                 server_mac_addresses = {}   #reset the server mac address dict
                 r_json = r.json()           #convert the response into a json object
 
@@ -153,15 +253,15 @@ class API_data:
                 #map the api queries to their corresponding values in the RESTAPI
                 map_api_queries(api_queries, r_json)
 
-                #open csv file and create writer object
+                """#open csv file and create writer object
                 with open(csv_file, mode='a', newline=' ') as file:
                     writer = csv.writer(file)
 
                 #write headers
-                writer.writerow(column_labels)
+                writer.writerow(column_labels)"""
 
             #print statements for server information
-                if server_mac_addresses:
+                """if server_mac_addresses:
                     print("\n" + r_json['ansible_nodename'])
                     for k,v in server_mac_addresses.items():
                         print(f"{k}: {v}")
@@ -169,7 +269,7 @@ class API_data:
                 if api_queries:
                     print("\n" + "api queries:")
                     for k, v in api_queries.items():
-                        print(f"{k}: {v}")
+                        print(f"{k}: {v}")"""
 
                 count_hosts += 1
 
