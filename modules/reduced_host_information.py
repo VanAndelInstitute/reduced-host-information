@@ -141,25 +141,19 @@ class API_data:
 
         #get current host name
         self.host_names[host_no] = response['ansible_nodename']
-        
-        #get keys for ansible_memory_mb
-        
-
         print("\n\n")
-        
+        print(query_map)
         print("Assignments")
         for k in keys:
             try:
                 if k == 'ansible_memory_mb':
-                    print(f"{k}: {response[k]['real']['total']}")     
+                    query_map[k] = response[k]['real']['total']
                 elif k == "ansible_processor":
-                    print(f"{k}: {response[k][2]}")
+                    query_map[k] = response[k][2]
                 else:
-                    print(f"{k}: {response[k]}")
-                
+                    query_map[k] = response[k]
             except:
                 print("Error: " + k)
-                exit(1)
 
 
 
