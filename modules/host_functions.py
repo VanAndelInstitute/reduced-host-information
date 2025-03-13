@@ -18,9 +18,9 @@ def check_file(filepath):
     else:
         print(f"{filepath} does not exist. Generating new file: {filepath}\n")
 
-def init_api_data_structure(token):
+def init_api_data_structure(token, API_data_var):
     all_flag = input("Do you want to retrieve all host information? (y/n): ")
-    data = API_data(TOKEN=token)
+    data = API_data_var(TOKEN=token)
 
     if all_flag.lower() == 'n':
         data.all_flag = 0
@@ -30,31 +30,27 @@ def init_api_data_structure(token):
     return data
 
 def reduce_interfaces(interfaces):
-    skip_lst = ['v','d']
+    skip_lst = ['v', 'd']
 
     for interface in interfaces:
         if interface[0] in skip_lst:
             interfaces.remove(interface)
+        else:
+            print(interface[0])
 
     return interfaces
 
 def query_interfaces(server_mac_addresses, reduced_ifs, r_json):
     valid_ifs = []
 
-    for inf in reduced_ifs:                    
-        mac_query = f'ansible_{inf}'
+    for intf in reduced_ifs:                    
+        mac_query = f'ansible_{intf}'
         try:
             mac_address = r_json[mac_query]['macaddress']
-            server_mac_addresses[inf] = mac_address
-            valid_ifs.append(inf)
+            server_mac_addresses[intf] = mac_address
+            valid_ifs.append(intf)
         except:
             continue
-    
+
     return valid_ifs
 
-def map_api_queries(api_queries, r_json):
-    for key in api_queries:
-        try:
-            api_queries[key] = r_json[key]
-        except KeyError:
-            api_queries[key] = 'Empty'

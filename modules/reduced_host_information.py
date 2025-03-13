@@ -1,4 +1,4 @@
-#possibly need to run pip install pandas, openpyxl, python-dotenv
+import modules.host_functions as host_functions
 import os
 import sys
 import csv
@@ -9,71 +9,13 @@ import json
 import pandas as pd
 from dotenv import load_dotenv
 
+############################################################################################################
+
 #signal hander for keyboard interrupts
 def signal_handler(sig, frame):
     print('\nInterupt Caught. Exiting program...\n')
     sys.exit(0)
 
-#check if environmental variable called 'TOKEN' exists. 
-def check_token():
-    if 'TOKEN' in os.environ:
-        return os.getenv('TOKEN')
-    else:
-        print("'TOKEN' does not exist as an evironment variable.")
-        print("Initialize an environmental variable called 'TOKEN' with your bearer token. Rerun the script upon completion.")
-        print("Exiting program...\n")
-        exit(1)
-
-def check_file(filepath):
-    if os.path.exists(filepath) and os.path.isfile(filepath):
-        print(f"{filepath} already exists. This file will be removed and a new one will be generated.\n")
-        os.remove(filepath)
-        print(f"Generating new file: '{filepath}\n")
-    else:
-        print(f"{filepath} does not exist. Generating new file: {filepath}\n")
-
-def init_api_data_structure(token):
-    all_flag = input("Do you want to retrieve all host information? (y/n): ")
-    data = API_data(TOKEN=token)
-
-    if all_flag.lower() == 'n':
-        data.all_flag = 0
-    else:
-        data.all_flag = 1
-
-    return data
-
-def reduce_interfaces(interfaces):
-    skip_lst = ['v','d']
-
-    for interface in interfaces:
-        if interface[0] in skip_lst:
-            interfaces.remove(interface)
-
-    return interfaces
-
-def query_interfaces(server_mac_addresses, reduced_ifs, r_json):
-    valid_ifs = []
-
-    for inf in reduced_ifs:                    
-        mac_query = f'ansible_{inf}'
-        try:
-            mac_address = r_json[mac_query]['macaddress']
-            server_mac_addresses[inf] = mac_address
-            valid_ifs.append(inf)
-        except:
-            continue
-    
-    return valid_ifs
-
-def map_api_queries(api_queries, r_json):
-    for key in api_queries:
-        try:
-            api_queries[key] = r_json[key]
-        except KeyError:
-            api_queries[key] = 'Empty'
-
-############################################################################################################
 
 class API_data:
     #constructor
@@ -86,6 +28,7 @@ class API_data:
             "Content-Type": "application/json"
         }
 
+    #GOOD
     #initialize list of all hosts numbers
     def get_host_nums(self, url):
         #check if status code is good, retrieve all host numbers. exit if otherwise
@@ -98,6 +41,7 @@ class API_data:
             print(f"\nError: {r.status_code}). Exiting program...\n")
             sys.exit(1)
 
+    #GOOD
     #get all the hosts from the curretly "visible" page
     def get_curr_page_hosts(self, response):
         hosts_curr_page = [host['id'] for host in response['results']]
@@ -106,6 +50,7 @@ class API_data:
 
         self.check_next_page(response)
 
+    #GOOD
     #if there is a next page, recurse with the url held in the 'next' field
     def check_next_page(self, response):
         if response['next']:
@@ -113,10 +58,11 @@ class API_data:
             self.get_host_nums(next_url)
         else:
             if self.all_flag == 1:
-                self.get_all_host_facts()
+                host_functions.get_all_host_facts()
             else:
-                self.get_some_host_facts()
+                host_functions.get_some_host_facts()
 
+    #FIXME: FIX THE FORMATTING. AND APPEND THE INFORMATION IN THE END. THIS IS LAST PRIORITY 
     def get_curr_host_facts(self, response, csv_file, host_no):
 
         self.host_names[host_no] = response['ansible_nodename']
@@ -134,37 +80,40 @@ class API_data:
         print(f"Successfully saved {server} data to {csv_file}")
         count_hosts += 1
 
+    
+    def get_some_curr_host_facts(self, response, host_no):
 
-
-
-    def get_some_curr_host_facts(self, response, host_no, csv_file, query_map, keys):
+        api_queries = {'ansible_nodename':'',      
+            'ansible_product_serial':'',
+            'ansible_chassis_serial':'',
+            'ansible_product_name':'',
+            'ansible_chassis_vendor':'',
+            'ansible_system_vendor':'',
+            "ansible_memory_mb":'',
+            'ansible_processor':'',
+            'ansible_processor_cores':'',
+            'ansible_processor_count':''}
 
         #get current host name
         self.host_names[host_no] = response['ansible_nodename']
-        print("\n\n")
-        print(query_map)
-        print("Assignments")
-        for k in keys:
+        for k in api_queries.keys():
             try:
                 if k == 'ansible_memory_mb':
-                    query_map[k] = response[k]['real']['total']
+                    api_queries[k] = response[k]['real']['total']
                 elif k == "ansible_processor":
-                    query_map[k] = response[k][2]
+                    api_queries[k] = response[k][2]
                 else:
-                    query_map[k] = response[k]
+                    api_queries[k] = response[k]
             except:
                 print("Error: " + k)
 
+        return api_queries
 
-
-
-
-##############################################################
     
     def get_all_host_facts(self):
         count_hosts = 0
         csv_file = 'host_information_all.csv'
-        check_file(csv_file)
+        host_functions.check_file(csv_file)
 
         #retrieving information for each host
         for host_no in self.host_nums:
@@ -188,10 +137,8 @@ class API_data:
     def get_some_host_facts(self):
         count_hosts = 0
         csv_file = 'host_information_some.csv'
-        check_file(csv_file)
+        host_functions.check_file(csv_file)
 
-        #FIXME index the processor to only show the first item. ansible_processor[0] = CPU name
-        #create a list of column names and query dict values
         interfaces = []
         reduced_ifs = []
         column_labels = ['Server Name',
@@ -204,22 +151,14 @@ class API_data:
                         'Processor (CPU)',
                         'Processor Cores',
                         'Processor Count']
-        
-        api_queries = {'ansible_nodename':'',      
-                      'ansible_product_serial':'',
-                      'ansible_chassis_serial':'',
-                      'ansible_product_name':'',
-                      'ansible_chassis_vendor':'',
-                      'ansible_system_vendor':'',
-                      "ansible_memory_mb":'',
-                      'ansible_processor':'',
-                      'ansible_processor_cores':'',
-                      'ansible_processor_count':''}
-        
-        api_query_keys = api_queries.keys()
+
 
         #iterate through all hosts
         for host_no in self.host_nums:
+
+            api_queries = {}
+
+            #get URL for specific host
             url = f'https://ansible.vai.org:8043/api/v2/hosts/{host_no}/ansible_facts'
             r = requests.get(url, headers=self.headers, verify=False)
 
@@ -228,42 +167,28 @@ class API_data:
                 r_json = r.json()
 
                 #get the facts listed in the api_queries for the current node
-                self.get_some_curr_host_facts(r_json, csv_file, host_no, api_queries, api_query_keys)
-                
+                api_queries = self.get_some_curr_host_facts(r_json, host_no)
 
-
-                server_mac_addresses = {}   #reset the server mac address dict
-                r_json = r.json()           #convert the response into a json object
+                server_mac_addresses = {}   #reset the server mac address dictionary
 
                 #retrieve all the interface names
                 interfaces = r_json['ansible_interfaces']
 
                 #filter out the virtual and docker interfaces
-                reduced_ifs = reduce_interfaces(interfaces)
+                reduced_ifs = host_functions.reduce_interfaces(interfaces)
 
                 #get the server interfaces and final reduced interfaces
-                valid_ifs = query_interfaces(server_mac_addresses, reduced_ifs, r_json)
+                valid_ifs = host_functions.query_interfaces(server_mac_addresses, reduced_ifs, r_json)
 
-                #map the api queries to their corresponding values in the RESTAPI
-                map_api_queries(api_queries, r_json)
-
-                """#open csv file and create writer object
-                with open(csv_file, mode='a', newline=' ') as file:
-                    writer = csv.writer(file)
-
-                #write headers
-                writer.writerow(column_labels)"""
 
             #print statements for server information
-                """if server_mac_addresses:
-                    print("\n" + r_json['ansible_nodename'])
+                if server_mac_addresses:
                     for k,v in server_mac_addresses.items():
-                        print(f"{k}: {v}")
+                        api_queries[k] = v
 
-                if api_queries:
-                    print("\n" + "api queries:")
-                    for k, v in api_queries.items():
-                        print(f"{k}: {v}")"""
+                for k,v in api_queries.items():
+                    print(f"{k}: {v}")
+                print("\n\n")
 
                 count_hosts += 1
 
@@ -282,8 +207,9 @@ signal.signal(signal.SIGINT, signal_handler)
 urllib3.disable_warnings()
 load_dotenv()
 
-TOKEN = check_token()
-data = init_api_data_structure(token=TOKEN)
+
+TOKEN = host_functions.check_token()
+data = host_functions.init_api_data_structure(token=TOKEN, API_data_var=API_data)
 url = 'https://ansible.vai.org:8043/api/v2/hosts/'
 
 print("\nProcess Starting...\n")
