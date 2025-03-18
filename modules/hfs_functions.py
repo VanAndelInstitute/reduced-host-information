@@ -1,8 +1,16 @@
 import os
 import sys
 import csv
+import math
 import requests
 import host_functions
+
+def progress_bar(progress, total):
+    percent = 100 * (progress / float(total))
+    bar = '#' * int(percent) + '-' * (100 - int(percent))
+    print(f"\r[{bar}] {percent:.2f}%", end="\r")
+
+
 
 def write_to_csv(query_map, filepath):
 
@@ -17,7 +25,6 @@ def write_to_csv(query_map, filepath):
         csvwriter.writerows(rows)
         csvwriter.writerow(["\n"])
 
-    print("saved")
 
 def get_some_curr_host_facts(host_names, response, host_no):
 
@@ -61,6 +68,7 @@ def get_some_host_facts(host_names, host_nums, headers):
 
 
     #iterate through all hosts
+    progress = 0
     for host_no in host_nums:
 
         api_queries = {}    #reset api_queries to empty
@@ -92,6 +100,9 @@ def get_some_host_facts(host_names, host_nums, headers):
 
             #append the reduced information to host_information.csv
             write_to_csv(query_map=api_queries, filepath=filepath)
+
+            progress += 1
+            progress_bar(progress, len(host_nums))
 
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")
