@@ -1,8 +1,23 @@
 import os
 import sys
+import csv
 import requests
-import pandas as pd
 import host_functions
+
+def write_to_csv(query_map, filepath):
+
+    with open(filepath, 'a+') as csvfile:
+        csvwriter = csv.writer(csvfile)
+
+        rows = []
+        for k,v in query_map.items():
+            rows.append([k, v])
+        rows.append("\n")
+
+        csvwriter.writerows(rows)
+        csvwriter.writerow(["\n"])
+
+    print("saved")
 
 def get_some_curr_host_facts(host_names, response, host_no):
 
@@ -35,6 +50,16 @@ def get_some_host_facts(host_names, host_nums, headers):
     interfaces = []
     reduced_ifs = []
 
+    #initialize filename for csv
+    filename = "some_host_information.csv"
+    filepath = os.path.join("csv-files",filename)
+
+    filenum = 0
+    while os.path.exists(filepath):
+        filenum += 1
+        filepath = os.path.join("csv-files",f"{filename}({filenum})")
+
+
     #iterate through all hosts
     for host_no in host_nums:
 
@@ -64,10 +89,9 @@ def get_some_host_facts(host_names, host_nums, headers):
             #add interfaces to api_queries
             for k,v in server_mac_addresses.items():
                 api_queries[k] = v
-            
-            print("\n")
-            for k,v in api_queries.items():
-                print(f"{k}: {v}")
+
+            #append the reduced information to host_information.csv
+            write_to_csv(query_map=api_queries, filepath=filepath)
 
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")

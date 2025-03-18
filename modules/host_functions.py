@@ -54,8 +54,3 @@ def query_interfaces(server_mac_addresses, reduced_ifs, r_json):
         except:
             continue
         
-
-def create_csv():
-    csv_file = 'host_information_some.csv'
-    check_file(csv_file)
-    column_labels = ['Server Name', 'Product Serial', 'Chassis Serial', 'Model', 'Chassis Vendor', 'System Vendor', 'Memory', 'Processor (CPU)', 'Processor Cores', 'Processor Count']
