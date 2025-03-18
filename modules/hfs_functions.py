@@ -4,11 +4,6 @@ import csv
 import requests
 import host_functions
 
-def progress_bar(progress, total):
-    percent = 100 * (progress / float(total))
-    bar = '#' * int(percent) + '-' * (100 - int(percent))
-    print(f"\r[{bar}] {percent:.2f}%", end="\r")
-
 def write_to_csv(query_map, filepath):
 
     with open(filepath, 'a+') as csvfile:
@@ -53,7 +48,7 @@ def check_new_queries():
 
     return queries
 
-def get_some_curr_host_facts(host_names, added_queries, response, host_no):
+def current_host_facts(host_names, added_queries, response, host_no):
 
     host_names[host_no] = response['ansible_nodename']
     api_queries = {'ansible_nodename':'',      
@@ -114,7 +109,7 @@ def get_some_host_facts(host_names, host_nums, headers):
             r_json = r.json()
 
             #get facts for the current node
-            api_queries = get_some_curr_host_facts(host_names, added_queries, r_json, host_no)
+            api_queries = current_host_facts(host_names, added_queries, r_json, host_no)
 
             #get all interface names for current node
             interfaces = r_json['ansible_interfaces']
@@ -133,7 +128,7 @@ def get_some_host_facts(host_names, host_nums, headers):
             write_to_csv(query_map=api_queries, filepath=filepath)
 
             progress += 1
-            progress_bar(progress, len(host_nums))
+            host_functions.progress_bar(progress, len(host_nums))
 
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")

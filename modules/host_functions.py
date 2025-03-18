@@ -13,16 +13,6 @@ def check_token():
         print("Exiting program...\n")
         exit(1)
 
-
-def check_file(filepath):
-    if os.path.exists(filepath) and os.path.isfile(filepath):
-        print(f"{filepath} already exists. This file will be removed and a new one will be generated.\n")
-        os.remove(filepath)
-        print(f"Generating new file: '{filepath}\n")
-    else:
-        print(f"{filepath} does not exist. Generating new file: {filepath}\n")
-
-
 def init_api_data_structure(token, API_data_var):
     all_flag = input("Do you want to retrieve all host information? (y/n): ")
     data = API_data_var(TOKEN=token)
@@ -53,4 +43,9 @@ def query_interfaces(server_mac_addresses, reduced_ifs, r_json):
             server_mac_addresses[intf] = mac_address
         except:
             continue
-        
+
+
+def progress_bar(progress, total):
+    percent = 100 * (progress / float(total))
+    bar = '#' * int(percent) + '-' * (100 - int(percent))
+    print(f"\r[{bar}] {percent:.2f}%", end="\r")
