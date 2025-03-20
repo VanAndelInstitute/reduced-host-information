@@ -78,5 +78,5 @@ if __name__ == "__main__":
     else:
         hfs_functions.get_some_host_facts(data.host_names, data.host_nums, data.headers)
 
-    #if here then process was successful
-    print('\n\nProcess Ended Successfully\n')
+    #if here then process did not crash
+    print('\n\nProcess Completed\n')
