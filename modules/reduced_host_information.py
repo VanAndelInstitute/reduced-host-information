@@ -39,10 +39,15 @@ class API_data:
 
     #get all the hosts from the curretly "visible" page
     def get_curr_page_hosts(self, response):
-        hosts_curr_page = [host['id'] for host in response['results']]
-        for hn in hosts_curr_page:
-            self.host_nums.append(hn)
+        #initialize the host_names and host_nums
+        for host in response['results']:
+            self.host_names[f"{host['id']}"] = host['name']
+            self.host_nums.append(host['id'])
 
+        #sort all the host numbers
+        self.host_nums.sort()
+
+        #check next page of hosts
         self.check_next_page(response)
 
     #if there is a next page, recurse with the url held in the 'next' field

@@ -13,6 +13,17 @@ def check_token():
         print("Exiting program...\n")
         exit(1)
 
+def check_filepath(filename):
+    #initialize filename for csv
+    filepath = os.path.join("csv-files",filename)
+    filenum = 0
+
+    while os.path.exists(filepath):
+        filenum += 1
+        filepath = os.path.join("csv-files",f"{filename}({filenum})")
+
+    return filepath
+
 def init_api_data_structure(token, API_data_var):
     all_flag = input("Do you want to retrieve all host information? (y/n): ")
     data = API_data_var(TOKEN=token)
@@ -23,7 +34,6 @@ def init_api_data_structure(token, API_data_var):
         data.all_flag = 1
 
     return data
-
 
 def reduce_interfaces(interfaces):
     skip_lst = ['v', 'd']

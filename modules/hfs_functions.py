@@ -84,12 +84,9 @@ def get_some_host_facts(host_names, host_nums, headers):
 
     #initialize filename for csv
     filename = "some_host_information.csv"
-    filepath = os.path.join("csv-files",filename)
 
-    filenum = 0
-    while os.path.exists(filepath):
-        filenum += 1
-        filepath = os.path.join("csv-files",f"{filename}({filenum})")
+    #create the filepath and change the filename if needed
+    filepath = host_functions.check_filepath(filename)
 
     #initialize default queries
     added_queries = check_new_queries()
