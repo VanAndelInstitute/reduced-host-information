@@ -7,13 +7,10 @@ import requests
 import urllib3
 from dotenv import load_dotenv
 
-############################################################################################################
-
 #signal hander for keyboard interrupts
 def signal_handler(sig, frame):
     print('\nInterupt Caught. Exiting program...\n')
     sys.exit(0)
-
 
 class API_data:
     #constructor

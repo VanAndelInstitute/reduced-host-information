@@ -1,6 +1,4 @@
-import os
 import sys
-import csv
 import requests
 import pandas as pd
 import host_functions
@@ -16,8 +14,6 @@ def current_host_facts(host_name, r_json, filepath):
 
     #insert the names of the servers for every line
     host_page_df.loc[-1] = host_name_labels
-    #host_page_df.index += 1
-    #host_page_df.sort_index()
 
     #sort the labels and transpose columns to rows of data
     host_page_df = host_page_df.T
