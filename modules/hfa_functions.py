@@ -42,6 +42,11 @@ def get_all_host_facts(host_names, host_nums, headers):
         #convert response object to json
         if r.status_code == 200:
             r_json = r.json()
+
+            #check if ansible facts are empty
+            if not r_json:
+                continue
+
             try:
                 current_host_facts(host_name=host_name, r_json=r_json, filepath=filepath)
                 progress += 1
