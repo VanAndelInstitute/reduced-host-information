@@ -4,14 +4,15 @@ import csv
 import requests
 import host_functions
 
-def write_to_csv(query_map, filepath):
+def write_to_csv(api_queries, filepath):
 
     with open(filepath, 'a+') as csvfile:
         csvwriter = csv.writer(csvfile)
 
         rows = []
-        for k,v in query_map.items():
-            rows.append([k, v])
+        ansible_nodename = api_queries['ansible_nodename']
+        for k,v in api_queries.items():
+            rows.append([ansible_nodename, k, v])
         rows.append("\n")
 
         csvwriter.writerows(rows)
@@ -122,7 +123,7 @@ def get_some_host_facts(host_names, host_nums, headers):
                 api_queries[k] = v
 
             #append the reduced information to host_information.csv
-            write_to_csv(query_map=api_queries, filepath=filepath)
+            write_to_csv(api_queries=api_queries, filepath=filepath)
 
             progress += 1
             host_functions.progress_bar(progress, len(host_nums))
