@@ -71,6 +71,9 @@ if __name__ == "__main__":
     #let user know process is starting
     print("\nProcess Starting...\n")
 
+    #check if the csv-files folder exists
+    host_functions.check_folders()
+
     #get every host number from the API
     data.get_host_nums(url)
 

@@ -108,6 +108,10 @@ def get_some_host_facts(host_names, host_nums, headers):
         if r.status_code == 200:
             r_json = r.json()
 
+            #check if ansible facts is empty
+            if not r_json:
+                continue
+
             #get facts for the current node
             api_queries = current_host_facts(host_names, added_queries, r_json, host_no)
 

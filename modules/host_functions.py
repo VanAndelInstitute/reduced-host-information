@@ -11,6 +11,16 @@ def check_token():
         print("Exiting program...\n")
         exit(1)
 
+def check_folders():
+    folder_name = "csv-files"
+
+    if not os.path.exists(folder_name):
+        try:
+            os.mkdir(folder_name)
+        except Exception as e:
+            print(e)
+
+
 def check_filepath(filename):
     #initialize filename for csv
     filepath = os.path.join("csv-files",filename)
