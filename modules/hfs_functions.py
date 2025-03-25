@@ -108,7 +108,7 @@ def get_some_host_facts(host_names, host_nums, headers):
         if r.status_code == 200:
             r_json = r.json()
 
-            #check if ansible facts is empty
+            #check if ansible facts are empty
             if not r_json:
                 continue
 
