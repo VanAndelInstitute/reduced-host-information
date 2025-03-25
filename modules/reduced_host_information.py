@@ -5,15 +5,14 @@ import sys
 import signal
 import requests
 import urllib3
+import time
 from dotenv import load_dotenv
-
-############################################################################################################
 
 #signal hander for keyboard interrupts
 def signal_handler(sig, frame):
+    time.sleep(0.1)
     print('\nInterupt Caught. Exiting program...\n')
     sys.exit(0)
-
 
 class API_data:
     #constructor
@@ -82,4 +81,4 @@ if __name__ == "__main__":
         hfs_functions.get_some_host_facts(data.host_names, data.host_nums, data.headers)
 
     #if here then process was successful
-    print('\n\nProcess Ended Successfully\n')
+    print('Shutting Down Process...')

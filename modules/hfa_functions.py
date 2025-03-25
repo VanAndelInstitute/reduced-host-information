@@ -1,23 +1,20 @@
-import os
 import sys
-import csv
 import requests
 import pandas as pd
 import host_functions
 
 def write_to_csv(host_page_df, filepath):
     host_page_df.to_csv(filepath, mode='a')
+    
 
 def current_host_facts(host_name, r_json, filepath):
 
     #convert the response to a dataframe to flatten the data
-    host_page_df = pd.json_normalize(r_json, sep=' ---> ', max_level=8)
-    host_name_labels = [' || ' + host_name] * len(host_page_df.columns)
+    host_page_df = pd.json_normalize(r_json, sep=':  ', max_level=8)
+    host_name_labels = [':   ' + host_name] * len(host_page_df.columns)
 
     #insert the names of the servers for every line
-    host_page_df.loc[-1] = host_name_labels
-    #host_page_df.index += 1
-    #host_page_df.sort_index()
+    host_page_df.loc[1] = host_name_labels
 
     #sort the labels and transpose columns to rows of data
     host_page_df = host_page_df.T
@@ -50,9 +47,10 @@ def get_all_host_facts(host_names, host_nums, headers):
                 progress += 1
 
                 host_functions.progress_bar(progress, len(host_nums))
-            except:
-                print(f"Log: Couldn't save host information for {host_name}")
+            except Exception as e:
+                print(e)
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")
             sys.exit(1)
 
+    print(f"\n\nFile saved as: {filepath}\n")
