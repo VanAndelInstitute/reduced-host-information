@@ -12,10 +12,9 @@ def write_to_csv(api_queries, filepath):
         ansible_nodename = api_queries['ansible_nodename']
         for k,v in api_queries.items():
             rows.append([ansible_nodename, k, v])
-        rows.append("\n")
-
+    
         csvwriter.writerows(rows)
-        csvwriter.writerow(["\n"])
+        csvwriter.writerow([])
 
 def check_answer(another_query=''):
 
@@ -31,7 +30,8 @@ def check_new_queries():
     attr_names = ['ansible_nodename', 'ansible_product_serial', 'ansible_chassis_serial', 'ansible_product_name', 'ansible_chassis_vendor',
                   'ansible_system_vendor', 'ansible_memory_mb', 'ansible_processor', 'ansible_processor_cores', 'ansible_processor_count']
 
-    print("The values of these attribute names from the Anisble Tower APi will be retrieved:")
+    print("The values of these attribute names will be retrieved from the Anisble Tower API. ")
+    print("Note that these are the names of the first columns only:\n")
     for a in attr_names:
         print(a)
 
@@ -40,11 +40,13 @@ def check_new_queries():
 
     #get the attribute name if another_query = yes
     while another_query.lower() == 'y':
-        attr_name = input("Type attribute name: ")
-        queries[attr_name] = ''
-        
-        #reset and check for another attribute and reloop if yes
-        another_query = check_answer()
+        attr_name = input("Type attribute name (press enter to cancel): ")
+        if attr_name:
+            queries[attr_name] = ''
+            #reset and check for another attribute and reloop if yes
+            another_query = check_answer()
+        else:
+            another_query = check_answer()
 
     return queries
 
@@ -65,6 +67,7 @@ def current_host_facts(host_names, added_queries, response, host_no):
     for k, v in added_queries.items():
         api_queries[k] = v
 
+    #check if the keys actually return a value/are valid
     for k in api_queries.keys():
         try:
             if k == 'ansible_memory_mb':
@@ -130,3 +133,5 @@ def get_some_host_facts(host_names, host_nums, headers):
         else:
             print(f"\nError: {r.status_code}). Exiting program...\n")
             sys.exit(1)
+
+    print(f"\n\nFile saved as: {filepath}\n")
