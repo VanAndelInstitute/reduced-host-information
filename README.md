@@ -36,10 +36,19 @@ The program is designed to be modular and modifiable, so users are free to fork 
 ## Getting More Attributes (reduced host information)
 If the user wants to retrieve more than the default values, they can query for the first attribute in the nested API structure. For example: if a structure is nested as attribute[first level][second level][third level], the user can only add another query for attribute[first level].
 
+Example for multi-leveled attribute 'ansible_host[A1][B1][B3]':
+  - Type attribute name (press enter to cancel): ansible_host[A1]
+
+For this example, we have an attribute 'ansible_host' with 3 levels of nesting in its structure: [A1], [B1], [C1]. Because the program is limited to only the first level of nesting, we can only query up to 'asible_host[A1]'
+
 ## reduced_host_information.py functions
+This module acts as the run-all file and determines the behavior for the rest of the program. 
 
 ## host_functions.py functions
 
+
 ## hfa_functions.py functions
 
+
 ## hfs_functions.py functions
+
