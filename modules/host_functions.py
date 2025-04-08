@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 
 #check if environmental variable called 'TOKEN' exists. 
 def check_token():
