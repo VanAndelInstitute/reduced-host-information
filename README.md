@@ -1,10 +1,13 @@
 # reduced-host-information Documentation
 ## Overview
-Originally created as a separate project, the reduced-host-information terminal program builds on the functionality of the original host-information repository while also adding modularity for ease of modification in the future. The reduced_host_information.py is a run-all terminal program that allows for the user to pull either all host information or a reduced amount of host information from the Ansible Tower API. The information from the CSV created by the program can be parsed for different attributes to be used at the owners disgression.
+Originally created as a separate project, reduced-host-information terminal program builds on the functionality of the original host-information repository while also adding modularity for ease of modification. This program allows for a user to pull either some or all of the host information from the Ansible Tower API and save that information to a CSV file. The information from the CSV file can be parsed for different host attributes, which can then be used at the user's disgression.
+
+Note: because this repository replaces the original host-information reposity, the reduced-host-information repository is the only one that should be used.
 
 ### User Guide / Instructions
-1. Before running the program, the user will need to set their TOKEN environment variable to their authorization token as outlined below.
-2. The user can run the terminal program with the following command 'python/python3 reduced_host_information.py'.
+1. Before running the program, the user will need to set their TOKEN environment variable to their Ansible Tower API authorization token as outlined in the "Authorization Token" section.
+   
+2. The user can run the terminal program on their local machine, a custom virtual environment, or a docker container created from the dockerfile (recommended - see "Running the Program in a Docker Container" section)
 3. The program will check for the TOKEN in the user's path and ask the user if they want to retrieve all host information.
    - If the user only wants to retrieve a limited amount of information, the default values that will be retrieved are displayed to the user, and the user will be prompted if they want to retrieve more attributes (Refer to the getting more attributes section).
    - it is not always guaranteed an added attribute will be held within a cetain host's API. The code will check for it's existence and will assign the value with 'N/A' if none is found.
@@ -13,19 +16,32 @@ Originally created as a separate project, the reduced-host-information terminal 
    - These files will be placed in a folder called 'csv-files' which can be found in the same folder as the repository. The program automatically check for its existence and automatically creates a new one if none exists.
 5. The program will automatically check for files containing the same name within the csv-files folder. If a certain file name already exists, the program creates a copy of the files with an appended copy number attached to it.
    - all_host_information.csv exists --> all_host_information.csv(1) will be created.
-  
-
-### Dependencies
-1. An updated version of python
-2. An authorization token from the Rest API set to the environment variable 'TOKEN'
-3. Installation of packages listed in the requirements.txt
-
-## Token / Dependency / Modification / Attribute Information
 
 ### Authorization Token
 If you are an authorized party, you can generate an authorization token from the ansible tower website (https://ansible.vai.org:8043/#/home at the time of creation).
 
 An authorization token can be set to the token environment variable by running 'export TOKEN="<your_auth_token>"'. This will set the environment variable for the lifespan of the terminal. If you wish for this token to be set permanently and used for all terminal instances, add this varaible to your ~/.bashrc or ~/.bash_profile. 
+
+### Running the Program in a Docker Container
+A Dockerfile was created for this repository so users may run a container without worrying about package conflicts. You will need to set the TOKEN environment variable in order to use it.
+
+#### Building the image:
+To build the docker image, run the following command: "docker build -t <docker_profile_name>/<image_tag>"
+  - "-t" allows you to name the image
+  - <image_tag> can be replaced by whatever you wish to name the image
+
+#### Running the container:
+The container will require both terminal interaction and reading from the TOKEN environment variable.
+Run the container with the following command: "docker run -it --env TOKEN=$TOKEN <docker_profile_name>/<image_tag>"
+  - "-it" stands for interactive terminal and will be allow for user input when running the program
+  - "--env TOKEN=$TOKEN" will set an environment variable named TOKEN in the environment variable and set it to the local TOKEN environment variable set by the user
+
+## Token / Dependency / Modification / Attribute Information
+
+### Dependencies
+1. An updated version of python
+2. An authorization token from the Rest API set to the environment variable 'TOKEN'
+3. Installation of packages listed in the requirements.txt
 
 ### Python Version and Dependency Installation
 Python version 3.12.4 and pip version 25.0.1 was used within a virtual environmnent to develop the program, so these versions or later versions will be necessary to run and or develop new features for the program. This repository contains the requirements.txt and requirements-dev.txt file. Only the packages listed in the requirements.txt is needed to run the program, but both sets of packages will be needed to modify the program.
@@ -43,7 +59,6 @@ Example for multi-leveled attribute 'ansible_host[A1][B1][B3]':
   - Type attribute name (press enter to cancel):   ansible_host[A1]
 
 For this example, we have an attribute 'ansible_host' with 3 levels of nesting in its structure: [A1], [B1], [C1]. Because the program is limited to only the first level of nesting, we only write 'asible_host[A1]' as our new query.
-
 
 ## Module Information
 
