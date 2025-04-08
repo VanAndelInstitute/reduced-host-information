@@ -36,7 +36,7 @@ An authorization token can be set to the token environment variable by running t
 A dockerfile was created for this repository so users can run the program without having to worry about conflicting dependencies. You will need to set the TOKEN environment variable as shown above in order to use it. You will need to build the image and run the container from this file to use it.
 
 #### Building the image:
-To build the docker image, run the following command: "docker build -t <dockerhub_profile_name>/<image_tag>"
+To build the docker image, run the following command: "docker build -t <image_tag> <location>"
   - "-t" allows you to name the image
   - <image_tag> can be replaced by whatever you wish to name the image
 
