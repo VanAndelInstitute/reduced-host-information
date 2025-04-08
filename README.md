@@ -32,19 +32,36 @@ If you are an authorized party, you can generate an authorization token from the
 
 An authorization token can be set to the token environment variable by running the command: 'export TOKEN="<your_auth_token>"'. This will set the environment variable for the lifespan of the terminal. If you wish for this token to be set permanently and used for all terminal instances, add this varaible to your ~/.bashrc or ~/.bash_profile. 
 
+Alternatively the access token may also be stored in an environment file (.env) since docker commands allow for reading environment variables from files. When choosing to do this, create a .env file and write inside of it: "TOKEN=<your_auth_token>" (without the quotations).
+
 ### Running the Program in a Docker Container
-A dockerfile was created for this repository so users can run the program without having to worry about conflicting dependencies. You will need to set the TOKEN environment variable as shown above in order to use it. You will need to build the image and run the container from this file to use it.
+A dockerfile was created for this repository so users can run the program without having to worry about conflicting dependencies. You will need to set the TOKEN environment variable as shown above in order to use it. You will need to build the image and run the container from this file to use it. Because this program writes to a directory, we need to persist this data beyond the containers lifespan by creating a docker volume (outlined in the below).
 
 #### Building the image:
-To build the docker image, run the following command: "docker build -t <dockerhub_profile_name>/<image_tag>"
+To build the docker image, run the following command: "docker build -t <image_name> <location>"
   - "-t" allows you to name the image
   - <image_tag> can be replaced by whatever you wish to name the image
+  - <location> is where the image will be created
 
-#### Running the container:
+#### Running a container and mounting a docker volume:
 The program will require both terminal interaction and reading from the TOKEN environment variable, so you will need to enable both in the terminal.
-After you set your TOKEN environment variable, run the container with the following command: "docker run -it --env TOKEN=$TOKEN <docker_profile_name>/<image_tag>"
-  - "-it" stands for interactive terminal and will allow the container to get the necessary inputs when running the program
-  - "--env TOKEN=$TOKEN" will create an environment variable named TOKEN wihtin the container and will assign it to the local TOKEN environment variable set by the user
+After you set your TOKEN environment variable, we will create and mount a volume using one of the two following methods:
+
+  - If using an exported TOKEN variable: "docker run -it --env TOKEN=$TOKEN -v ${PWD}/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
+  - Example: docker run -it --env TOKEN=$TOKEN -v ${PWD}/my_new_dir/:/code/csv-files my_docker_image
+    - "--env TOKEN=$TOKEN" will create an environment variable named TOKEN wihtin the container and will assign it to the local TOKEN environment variable set by the user
+
+  - If using a .env file: "docker run -it --env-file <your_env_file> -v ${PWD}/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
+  - Example: docker run -it --env-file docker.env -v ${PWD}/my_new_dir/:/code/csv-files my_docker_image
+    - "--env-file <your_env_file> will read the "TOKEN=<your_auth_token>" line stored within the file (outlined in the Authorization Token section) and pass it to the docker container
+  
+  - "-it" will run the container with an interactive terminal to get the necessary inputs when running the program
+  - "--env-file <your_env_file> will read 
+  -v ${PWD}/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name> can be broken down as follows:
+    - -v will allow us to mount a volume to a specified directory
+    - ${PWD} gets the current working directory of the repository
+    - <new_directory_name|existing_directory_name>/ can be either the name of an existing or non-existing directory
+    - :/code/csv-files/ is where the program ran within the docker container outputs CSV files to. The names in this part of the command does not change
 
 ## Dependency / Development / Attribute Information
 
