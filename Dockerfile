@@ -4,6 +4,7 @@ ENV PYTHONBUFFERED=1
 
 #specify where future commands will run and where the files are copied
 WORKDIR /code/
+
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
