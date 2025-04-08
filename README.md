@@ -74,7 +74,7 @@ For this example, we have an attribute 'ansible_host' with 3 levels of nesting i
 ### reduced_host_information.py functions
 This module acts as the run-all file and determines the behavior for the rest of the program. It will first disable unnecessary warnings, make a call to the check_token function, and read the user's TOKEN environment variable. If successful, the program initializes the data structure with that token and prompt the user if they wish to retrieve all information about the hosts. The program will then create a csv-files folder if it doesn't exist and make a call to either the get_some_host_facts() or the get_all_host_facts() function depending on if the all_flag was set to 0 or 1.
 
-### host_functions.
+### host_functions.py functions
 host_functions.py houses the functions that are used by reduced_host_information.py, hfa_functions.py, and hfs_functions.py to improve modularity and reduce repeated code. Functions here do not call other functions defined in this file.
 
 ### hfa_functions.py functions
