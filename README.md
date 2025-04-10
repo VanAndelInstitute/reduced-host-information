@@ -25,17 +25,17 @@ Originally created as a separate project, reduced-host-information terminal prog
      
    - These files will be placed in a folder called 'csv-files' which can be found in the same folder as the repository. The program checks for this folder's existence and automatically creates a new one if it doesn't exists.
 6. The program will automatically check for files containing the same name within the csv-files folder. If a certain file name already exists, the program creates a copy of the files with an appended copy number attached to it.
-   - Copy Example: all_host_information.csv exists --> all_host_information.csv(1) will be created.
+   - Copy Example: all_host_information.csv exists --> all_host_information(1).csv will be created.
 
 ### Authorization Token
 If you are an authorized party, you can generate an authorization token from the ansible tower website (https://ansible.vai.org:8043/#/home at the time of creation).
 
-An authorization token can be set to the token environment variable by running the command: 'export TOKEN="<your_auth_token>"'. This will set the environment variable for the lifespan of the terminal. If you wish for this token to be set permanently and used for all terminal instances, add this varaible to your ~/.bashrc or ~/.bash_profile. 
+It is recommended to store your authorization token in an environment file (.env) as this is the safest approach. You can run a docker container with the appropriate options, and the docker container will be able to read variables from .env files. When choosing to do this, create a .env file and write inside of it: "TOKEN=<your_auth_token>" (without the quotations). (Refer to the "Running the Program in a Docker Container")
 
-Alternatively the access token may also be stored in an environment file (.env) since docker commands allow for reading environment variables from files. When choosing to do this, create a .env file and write inside of it: "TOKEN=<your_auth_token>" (without the quotations).
+Alternatively, an authorization token can be set to the token environment variable by running the command: 'export TOKEN="<your_auth_token>"'. This will set the environment variable for the lifespan of the terminal.
 
 ### Running the Program in a Docker Container
-A dockerfile was created for this repository so users can run the program without having to worry about conflicting dependencies. You will need to set the TOKEN environment variable as shown above in order to use it. You will need to build the image and run the container from this file to use it. Because this program writes to a directory, we need to persist this data beyond the containers lifespan by creating a docker volume (outlined in the below).
+A dockerfile was created for this repository so users can run the program without having to worry about conflicting dependencies. You will need to set the TOKEN environment variable using one of the methods above in order to run a container. Additionally, you will need to build the image from the dockerfile to run the container. Because this program writes to a directory, you will also need to persist this data beyond the container's lifespan by creating a docker volume (outlined in the below section).
 
 #### Building the image:
 
@@ -45,17 +45,19 @@ To build the docker image, run the following command: "docker build -t <image_na
   - <image_tag> can be replaced by whatever you wish to name the image
   - <location> is where the image will be created
 
+Example: docker build -t my-new-image .
+
 #### Running a container and mounting a docker volume:
-The program will require both terminal interaction and reading from the TOKEN environment variable, so you will need to enable both in the terminal.
+The program will require both terminal interaction and reading from the TOKEN environment variable, so you will need to enable both features using the proper docker command options.
 After you set your TOKEN environment variable, we will create and mount a volume using one of the two following methods:
 
-  - If using an exported TOKEN variable: "docker run -it --env TOKEN=$TOKEN -v ${PWD}/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
-  - Example: docker run -it --env TOKEN=$TOKEN -v ${PWD}/my_new_dir/:/code/csv-files my_docker_image
-    - "--env TOKEN=$TOKEN" will create an environment variable named TOKEN wihtin the container and will assign it to the local TOKEN environment variable set by the user
-
-  - If using a .env file: "docker run -it --env-file <your_env_file> -v ${PWD}/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
+  - To read a token from a .env file: "docker run -it --env-file <your_env_file> -v $(PWD)/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
   - Example: docker run -it --env-file docker.env -v ${PWD}/my_new_dir/:/code/csv-files my_docker_image
     - "--env-file <your_env_file> will read the "TOKEN=<your_auth_token>" line stored within the file (outlined in the Authorization Token section) and pass it to the docker container
+
+  - To read a token from an exported TOKEN variable: "docker run -it --env TOKEN=$TOKEN -v ${PWD}/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
+  - Example: docker run -it --env TOKEN=$TOKEN -v ${pwd}/my_new_dir/:/code/csv-files my_docker_image
+    - "--env TOKEN=$TOKEN" will create an environment variable named TOKEN wihtin the container and will assign it to the local TOKEN environment variable set by the user
   
   - "-it" will run the container with an interactive terminal to get the necessary inputs when running the program
   - "--env-file <your_env_file> will read 
