@@ -51,9 +51,13 @@ Example: docker build -t my-new-image .
 The program will require both terminal interaction and reading from the TOKEN environment variable, so you will need to enable both features using the proper docker command options.
 After you set your TOKEN environment variable, we will create and mount a volume using one of the two following methods:
 
-  - To read a token from a .env file: "docker run -it --env-file <your_env_file> -v $(PWD)/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
+  - To read a token from a .env file and save to a local directory: "docker run -it --env-file <your_env_file> -v $(PWD)/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
   - Example: docker run -it --env-file docker.env -v ${PWD}/my_new_dir/:/code/csv-files my_docker_image
     - "--env-file <your_env_file> will read the "TOKEN=<your_auth_token>" line stored within the file (outlined in the Authorization Token section) and pass it to the docker container
+    - **Note:** You may have to add your local directory as a sharable file within docker's fileshare settings
+
+  - To read a token from a .env file and save to a docker volume: "docker run -it --env-file <your_env_file> -v <volume_name>:/code/csv-files <image_name>
+  - Example: docker run -it --env-file docker.env -v new_docker_volume:/code/csv-files my_docker_image
 
   - To read a token from an exported TOKEN variable: "docker run -it --env TOKEN=$TOKEN -v ${PWD}/<new_directory_name|existing_directory_name>/:/code/csv-files <image_name>
   - Example: docker run -it --env TOKEN=$TOKEN -v ${pwd}/my_new_dir/:/code/csv-files my_docker_image
