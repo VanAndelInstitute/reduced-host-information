@@ -26,10 +26,11 @@ def current_host_facts(host_name, r_json, filepath):
 def get_all_host_facts(host_names, host_nums, headers):
 
     #initialize filename for csv
-    filename = "all_host_information.csv"
+    filename = "all_host_information"
+    extension = ".csv"
 
     #create a filepath and change the filename if needed
-    filepath = host_functions.check_filepath(filename)
+    filepath = host_functions.check_filepath(filename, extension)
 
     #retrieving information for each host
     progress = 0

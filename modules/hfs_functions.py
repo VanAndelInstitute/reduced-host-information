@@ -86,10 +86,11 @@ def get_some_host_facts(host_names, host_nums, headers):
     reduced_ifs = []
 
     #initialize filename for csv
-    filename = "some_host_information.csv"
+    filename = "some_host_information"
+    extension = ".csv"
 
     #create the filepath and change the filename if needed
-    filepath = host_functions.check_filepath(filename)
+    filepath = host_functions.check_filepath(filename, extension)
 
     #initialize default queries
     added_queries = check_new_queries()

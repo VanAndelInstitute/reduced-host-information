@@ -20,14 +20,16 @@ def check_folders():
             print(e)
 
 
-def check_filepath(filename):
+def check_filepath(filename, extension):
     #initialize filename for csv
-    filepath = os.path.join("csv-files",filename)
+    filepath = os.path.join("csv-files",f"{filename}{extension}")
     filenum = 0
 
     while os.path.exists(filepath):
         filenum += 1
-        filepath = os.path.join("csv-files",f"{filename}({filenum})")
+        filepath = os.path.join("csv-files",f"{filename}({filenum}){extension}")
+
+    print(filepath)
 
     return filepath
 
