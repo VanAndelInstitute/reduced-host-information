@@ -86,13 +86,13 @@ The program is designed with modularity in mind so users are free to fork the re
 **Note:** For any code changes to take effect in a docker container, you will need to rebuild the image and rerun the container (as shown above).
 
 ### Getting More Attributes (reduced host information)
-To retrieve more than the default reduced host attributes defined by the program, you can add another attribute name that is held within the first level of the host API's json structure. For instance, if a host API's json structure contains attribute_1[first level][second level][third level], and the user wants to query for the first level of attribute_2, they can add the query attribute_2[first_level] when prompted. However, if the user wants to query for the second level of attribute 2, say attribute_2[first_level][second_level], they will need to query for attribute_2[first_level] and parse the CSV themselves for the second attribute.
+To retrieve more than the default reduced host attributes defined by the program, you can add another attribute name that is held within the first level of the host API's json structure. For instance, if a host API's json structure contains attribute_1[first level][second level][third level], and the user wants to query for any subsequent level of attribute_1, they will only be able to query "attribute_1" and will have to manually parse it once the file is generated.
 
-Example for multi-leveled attribute 'ansible_host[A1][B1][B3]':
+Example for multi-leveled attribute 'ansible_dns[A1][B1][B3]':
   - Add another attribute? (y/n):   y
-  - Type attribute name (press enter to cancel):   ansible_host[A1]
+  - Type attribute name (press enter to cancel):   ansible_dns
 
-For this example, we have an attribute 'ansible_host' with 3 levels of nesting in its structure: [A1], [B1], [C1]. Because the program is limited to only the first level of nesting, we can only write 'asible_host[A1]' as our new query, and will need to parse through the CSV for [B1] and [C1].
+For this example, we have an attribute 'ansible_host' with 3 levels of nesting in its structure: [A1], [B1], [C1]. Because the program is limited to only the first level of nesting, we can only write 'ansible_host' as our new query, and will need to parse through the CSV for [A1], [B1] and [C1].
 
 ## Module Information
 
