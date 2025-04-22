@@ -39,13 +39,13 @@ A dockerfile was created for this repository so users can run the program withou
 
 #### Building the image:
 
-To build the docker image, run the following command: "docker build -t <image_name> <location>"
+To build the docker image, run the following command: "docker build -t <image_name> [location]"
 
   - "-t" allows you to name the image
   - <image_tag> can be replaced by whatever you wish to name the image
-  - <location> is where the image will be created
+  - [location] is where the image will be created
 
-Example: docker build -t my-new-image .
+Example building in current directory: docker build -t my-new-image .
 
 #### Running a container and mounting a docker volume:
 The program will require both terminal interaction and reading from the TOKEN environment variable, so you will need to enable both features using the proper docker command options.
