@@ -29,8 +29,6 @@ def check_filepath(filename, extension):
         filenum += 1
         filepath = os.path.join("csv-files",f"{filename}({filenum}){extension}")
 
-    print(filepath)
-
     return filepath
 
 def init_api_data_structure(token, API_data_var):
